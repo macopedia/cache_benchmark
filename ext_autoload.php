@@ -1,5 +1,4 @@
 <?php
-$extensionPath = t3lib_extMgm::extPath('cacheBenchmark');
+$extensionPath = t3lib_extMgm::extPath('cache_benchmark');
 return array(
-	'Macopedia\\CacheBenchmark\\Command\\CacheBenchmarkCommandController' => $extensionPath . 'Classes/Command/CacheBenchmarkCommandController.php',
 );
