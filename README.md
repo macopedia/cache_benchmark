@@ -22,10 +22,11 @@ You can change the cache used by the tool by changing the $benchmarkCacheName pr
 * Can easily test multiple pre-generated datasets.
 * Supports multi-process benchmarking, each process with a different set of random operations.
 * Cache record data size, number of tags, expiration, popularity and volatility are all randomized.
+* Right now it supports only taggable cache backends
 
 ## EXAMPLE RUN
 
-    Loading default test data..., cache name: benchmark_cache2
+    Loading default test data..., cache name: benchmark_cache
     Loaded 10000 cache records in 2.86 seconds (2.6558 seconds cache time). Data size is 5015.8K
     Cache Configuration:
     array (
