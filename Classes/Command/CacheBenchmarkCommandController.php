@@ -43,11 +43,13 @@ class CacheBenchmarkCommandController extends CommandController {
 	 * @var array $_tags Array of tags to benchmark
 	 */
 	protected $_tags = array();
+
 	/**
 	 * @var int $_maxTagLength The length of the longest cache tag
 	 * @see benchmark::_getLongestTagLength()
 	 */
 	protected $_maxTagLength = 0;
+
 	/**
 	 * @var string $_cachePrefix The cache tag and id prefix for this Magento instance
 	 * @see benchmark::_getCachePrefix()
@@ -56,8 +58,7 @@ class CacheBenchmarkCommandController extends CommandController {
 
 	protected $benchmarkCacheName = 'benchmark_cache';
 
-	public function usageCommand()
-	{
+	public function usageCommand() {
 		$message = <<<USAGE
 This script will either initialize a new benchmark dataset or run a benchmark.
 
@@ -74,14 +75,14 @@ Commands:
 
 'init' options:
   --name <string>       A unique name for this dataset (default to "default")
-  --keys <num>          Number of cache keys (default to 10000)
-  --tags <num>          Number of cache tags (default to 2000)
-  --min-tags <num>      The min number of tags to use for each record (default 0)
-  --max-tags <num>      The max number of tags to use for each record (default 15)
-  --min-rec-size <num>  The smallest size for a record (default 1)
-  --max-rec-size <num>  The largest size for a record (default 1024)
-  --clients <num>       The number of clients for multi-threaded testing (defaults to 4)
-  --ops <num>           The number of operations to perform per client (defaults to 100000)
+  --numberOfKeys <num>          Number of cache keys (default to 10000)
+  --numberOfTags <num>          Number of cache tags (default to 2000)
+  --minTagsPerRecord <num>      The min number of tags to use for each record (default 0)
+  --maxTagsPerRecord <num>      The max number of tags to use for each record (default 15)
+  --minRecordSize <num>  The smallest size for a record (default 1)
+  --minRecordSize <num>  The largest size for a record (default 1024)
+  --numberOfClients <num>       The number of clients for multi-threaded testing (defaults to 4)
+  --numOps <num>           The number of operations to perform per client (defaults to 100000)
   --seed <num>          The random number generator seed (default random)
 
 'ops' options:
@@ -109,6 +110,7 @@ USAGE;
 	 * @param int $writeChanceFactor	The chance-factor that a key will be overwritten (defaults to 1000)
 	 * @param int $cleanChanceFactor	The chance-factor that a tag will be cleaned (defaults to 5000)
 	 * @param string $name
+	 * @param int $seed
 	 */
 	public function initDatasetCommand(
 		$numberOfKeys = 10000,
@@ -121,7 +123,8 @@ USAGE;
 		$numOps = 50000,
 		$writeChanceFactor = 1000,
 		$cleanChanceFactor = 1000,
-		$name = 'default'
+		$name = 'default',
+		$seed=-1
 	) {
 
 		$testDir = $this->_getTestDir() . "/$name";
@@ -135,9 +138,9 @@ USAGE;
 		// Dump command-line
 		file_put_contents("$testDir/cli.txt", 'php ' . implode(' ', $_SERVER['argv']));
 
-//		if($this->getArg('seed')) {
-//			mt_srand( (int) $this->getArg('seed'));
-//		}
+		if ($seed != -1) {
+			mt_srand( (int) $seed);
+		}
 
 		$tags = array();
 		$lengths = array();
@@ -241,12 +244,12 @@ TEXT;
 				}
 
 				// Clean
-				if (mt_rand(0, $cleanChanceFactor) == 0) {
+				if ($cleanChanceFactor > 0 && mt_rand(0, $cleanChanceFactor) == 0) {
 					$index = mt_rand(0, count($this->_tags) - 1);
 					$tag = $this->_tags[$index];
 					$ops[] = array('clean', $tag);
 				} // Write
-				else if (mt_rand(0, $writeChanceFactor) == 0) {
+				else if ($writeChanceFactor > 0 && mt_rand(0, $writeChanceFactor) == 0) {
 					$index = mt_rand(0, count($writes) - 1);
 					$key = $writes[$index];
 					$ops[] = array('write', $key, $lengths[$key], $tags[$key]);
@@ -651,7 +654,8 @@ BASH;
 	 * @return mixed
 	 */
 	protected function loadCache($key) {
-		return $this->getCacheBackend()->get($key);
+		$result = $this->getCacheBackend()->get($key);
+		return $result;
 	}
 
 	/**
